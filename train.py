@@ -1,15 +1,15 @@
 import tensorflow as tf
 import numpy as np
-import tfplot
+# import tfplot
 
 from tensorflow.contrib.training import HParams
 from model import RhoCMPS, PsiCMPS
 from data import get_audio
-from utils import waveform_plot
+# from utils import waveform_plot
 
 DTYPE=tf.float32
 NP_DTYPE=np.float32
-
+# TODO what is this seed doing? Should it be here?
 tf.set_random_seed(0)
 
 FLAGS = tf.flags.FLAGS
@@ -31,7 +31,6 @@ tf.flags.DEFINE_integer('num_samples', 3, 'Number of samples to generate.')
 tf.flags.DEFINE_string("hparams", "", 'Comma separated list of "name=value" pairs e.g. "--hparams=learning_rate=0.3"')
 tf.flags.DEFINE_string("datadir", "./data", "Data directory.")
 tf.flags.DEFINE_string("logdir", f"../logging/audio_mps/{FLAGS.dataset}", "Directory to write logs.")
-# TODO
 tf.flags.DEFINE_string('filename', 'flags', 'Input file name.', short_name='f')
 
 
@@ -43,7 +42,7 @@ def main(argv):
 
     hparams = HParams(minibatch_size=8, bond_dim=8, delta_t=1/FLAGS.sample_rate, sigma=0.0001,
                       h_reg=200/(np.pi * FLAGS.sample_rate)**2, r_reg=0.1,
-                      initial_rank=None, A=100., learning_rate=0.001)
+                      initial_rank=None, A=1., learning_rate=0.001)
     hparams.parse(FLAGS.hparams)
 
     with tf.variable_scope("data"):
@@ -64,7 +63,7 @@ def main(argv):
 
     with tf.variable_scope("summaries"):
         tf.summary.scalar("A", tf.cast(model.A, dtype=tf.float32))
-        tf.summary.scalar("sigma", tf.cast(model.sigma, dtype=tf.float32))
+        # tf.summary.scalar("sigma", tf.cast(model.sigma, dtype=tf.float32))
         tf.summary.scalar("h_l2norm", tf.sqrt(h_l2sqnorm))
         tf.summary.scalar("r_l2norm", tf.sqrt(r_l2sqnorm))
 
@@ -77,15 +76,15 @@ def main(argv):
         tf.summary.audio("data", data, sample_rate=FLAGS.sample_rate, max_outputs=5)
         tf.summary.histogram("frequencies", model.freqs / (2 * np.pi))
 
-        if FLAGS.visualize:
-            # Doesn't work for Datasets where batch size can't be inferred
-            data_waveform_op = tfplot.autowrap(waveform_plot, batch=True)(data, hparams.minibatch_size * [hparams.delta_t])
-            tf.summary.image("data_waveform", data_waveform_op)
-
-            if FLAGS.num_samples != 0:
-                samples = model.sample(FLAGS.num_samples, FLAGS.sample_duration)
-                sample_waveform_op = tfplot.autowrap(waveform_plot, batch=True)(samples, FLAGS.num_samples * [hparams.delta_t])
-                tf.summary.image("sample_waveform", sample_waveform_op)
+        # if FLAGS.visualize:
+        #     # Doesn't work for Datasets where batch size can't be inferred
+        #     data_waveform_op = tfplot.autowrap(waveform_plot, batch=True)(data, hparams.minibatch_size * [hparams.delta_t])
+        #     tf.summary.image("data_waveform", data_waveform_op)
+        #
+        #     if FLAGS.num_samples != 0:
+        #         samples = model.sample(FLAGS.num_samples, FLAGS.sample_duration)
+        #         sample_waveform_op = tfplot.autowrap(waveform_plot, batch=True)(samples, FLAGS.num_samples * [hparams.delta_t])
+        #         tf.summary.image("sample_waveform", sample_waveform_op)
 
 
     step = tf.get_variable("global_step", [], tf.int64, tf.zeros_initializer(), trainable=False)
@@ -99,8 +98,8 @@ def main(argv):
                                      f"_dt{hparams.delta_t}"
                                      f"_bs{hparams.minibatch_size}"
                                      f"_sg{hparams.sigma}"
-                                     f"_sampdur{FLAGS.sample_duration}_"
-                                     +datalog)
+                                     f"_sampdur{FLAGS.sample_duration}"
+                                     +datalog+f"_{FLAGS.mps_model}")
 
 if __name__ == '__main__':
     tf.app.run(main)
