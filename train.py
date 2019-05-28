@@ -76,6 +76,11 @@ def main(argv):
         tf.summary.audio("data", data, sample_rate=FLAGS.sample_rate, max_outputs=5)
         tf.summary.histogram("frequencies", model.freqs / (2 * np.pi))
 
+        #R summary
+        rms_R = tf.sqrt(tf.reduce_mean(tf.reshape(tf.real(model.R*tf.conj(model.R)),[hparams.bond_dim**2])))
+        tf.summary.scalar("rms_R", tf.reshape(rms_R, []))
+
+
         # if FLAGS.visualize:
         #     # Doesn't work for Datasets where batch size can't be inferred
         #     data_waveform_op = tfplot.autowrap(waveform_plot, batch=True)(data, hparams.minibatch_size * [hparams.delta_t])
