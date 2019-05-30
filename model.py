@@ -18,7 +18,7 @@ class CMPS:
         self.A = hparams.A
         self.A = tf.get_variable("A", dtype=tf.float32, initializer=hparams.A)
 
-        # TODO leave a warning message to include sigma in the loss, if we learn it
+        # TODO leave a warning message to include sigma in the loss, if we learn it. What is the usual way?
         self.sigma = hparams.sigma
         # self.sigma = tf.get_variable("sigma", dtype=tf.float32, initializer=hparams.sigma)
         # self.sigma = tf.cast(self.sigma, dtype=tf.complex64)
@@ -110,7 +110,6 @@ class RhoCMPS(CMPS):
         rho, samples, _ = tf.scan(self._rho_and_sample_update, noise,
                                initializer=(rho_0, batch_zeros, 0.), name="sample_scan")
         # TODO The use of tf.scan here must have some inefficiency as we keep all the intermediate psi values
-        # TODO check batch_zeros is the right initializer. I think it is if I define X_0 = 0.
         return self.A * tf.transpose(samples, [1, 0])
 
     def sample_filtered(self, num_samples, length, temp=1, λ=1):
@@ -263,7 +262,6 @@ class PsiCMPS(CMPS):
         psi, samples, _ = tf.scan(self._psi_and_sample_update, noise,
                                initializer=(psi_0, batch_zeros, 0.), name="sample_scan")
         # TODO The use of tf.scan here must have some inefficiency as we keep all the intermediate psi values
-        # TODO check batch_zeros is the right initializer. I think it is if I define X_0 = 0.
         return tf.transpose(samples, [1, 0])
 
     def sample_filtered(self, num_samples, length, temp=1, λ=1):
@@ -309,8 +307,6 @@ class PsiCMPS(CMPS):
         # We switch to increments
         incs = self.data_iterator[:, 1:] - self.data_iterator[:, :-1]
         incs = tf.transpose(incs, [1, 0])  # foldl goes along the 1st dimension
-        # _, loss, _ = tf.foldl(self._psi_and_loss_update, incs,
-        #                    initializer=(psi_0, loss, 0.), name="loss_fold")
         _, loss, T, R_plus_Rdag = tf.foldl(self._psi_and_loss_update, incs,
                            initializer=(psi_0, loss, 0., batch_zeros), name="loss_fold")
         return tf.reduce_mean(loss), tf.sqrt(tf.reduce_mean(R_plus_Rdag)/T)
