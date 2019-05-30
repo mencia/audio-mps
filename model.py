@@ -238,7 +238,6 @@ class PsiCMPS(CMPS):
             self.psi_0 = self._psi_init(psi_in)
 
         if self.data_iterator is not None:
-            # self.loss = self._build_loss_psi(self.data_iterator)
             self.loss, self.rms_R_plus_Rdag = self._build_loss_psi()
 
     # ====================
