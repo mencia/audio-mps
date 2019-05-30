@@ -297,6 +297,8 @@ class PsiCMPS(CMPS):
     # Psi methods-PRIVATE
     # =====================
 
+    
+
     def _build_loss_psi(self):
         batch_size = self.data_iterator.shape[0]
         batch_zeros = tf.zeros([batch_size])
