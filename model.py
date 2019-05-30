@@ -236,8 +236,8 @@ class PsiCMPS(CMPS):
             super(PsiCMPS, self).__init__(hparams, *args, **kwargs)
 
             if psi_in is not None:
-                psi_x = tf.get_variable("psi_x", dtype=tf.float32, initializer=psi_x_in)
-                psi_y = tf.get_variable("psi_y", dtype=tf.float32, initializer=psi_y_in)
+                psi_x = tf.get_variable("psi_x", dtype=tf.float32, initializer=psi_in.real)
+                psi_y = tf.get_variable("psi_y", dtype=tf.float32, initializer=psi_in.imag)
             else:
                 psi_x = tf.get_variable("psi_x", shape=[self.bond_d], dtype=tf.float32, initializer=None)
                 psi_y = tf.get_variable("psi_y", shape=[self.bond_d], dtype=tf.float32, initializer=None)
