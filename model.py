@@ -235,15 +235,7 @@ class PsiCMPS(CMPS):
         with tf.variable_scope("PsiCMPS"):
             super(PsiCMPS, self).__init__(hparams, *args, **kwargs)
 
-            if psi_in is not None:
-                psi_x = tf.get_variable("psi_x", dtype=tf.float32, initializer=psi_in.real)
-                psi_y = tf.get_variable("psi_y", dtype=tf.float32, initializer=psi_in.imag)
-            else:
-                psi_x = tf.get_variable("psi_x", shape=[self.bond_d], dtype=tf.float32, initializer=None)
-                psi_y = tf.get_variable("psi_y", shape=[self.bond_d], dtype=tf.float32, initializer=None)
-
-            self.psi_0 = tf.complex(psi_x, psi_y)
-            self.psi_0 = self._normalize_psi(self.psi_0) # No need of axis=1 because this is not a batch of psis
+            self.psi_0 = self._psi_init(psi_in)
 
         if self.data_iterator is not None:
             # self.loss = self._build_loss_psi(self.data_iterator)
@@ -297,7 +289,18 @@ class PsiCMPS(CMPS):
     # Psi methods-PRIVATE
     # =====================
 
-    
+    def _psi_init(self, psi_in):
+
+        if psi_in is not None:
+            psi_x = tf.get_variable("psi_x", dtype=tf.float32, initializer=psi_in.real)
+            psi_y = tf.get_variable("psi_y", dtype=tf.float32, initializer=psi_in.imag)
+        else:
+            psi_x = tf.get_variable("psi_x", shape=[self.bond_d], dtype=tf.float32, initializer=None)
+            psi_y = tf.get_variable("psi_y", shape=[self.bond_d], dtype=tf.float32, initializer=None)
+
+        psi_0 = tf.complex(psi_x, psi_y)
+        psi_0 = self._normalize_psi(psi_0) # No need of axis=1 because this is not a batch of psis
+        return psi_0
 
     def _build_loss_psi(self):
         batch_size = self.data_iterator.shape[0]
