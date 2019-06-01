@@ -21,7 +21,7 @@ tf.flags.DEFINE_enum('mps_model', 'psi_mps',
 
 # Training flags
 tf.flags.DEFINE_enum('dataset', 'damped_sine',
-                     ['damped_sine', 'fixed_damped_sine', 'guitar', 'organ', 'nsynth'],
+                     ['damped_sine', 'fixed_damped_sine', 'damped_sine_2_freq', 'guitar', 'organ', 'nsynth'],
                      'Dataset. Must be one of "damped_sine", "guitar", "organ", or "nsynth".')
 
 tf.flags.DEFINE_integer("sample_duration", 2**16, "Duration of samples (as integer).")
