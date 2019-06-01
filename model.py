@@ -258,7 +258,7 @@ class PsiCMPS(CMPS):
         # Note we sample X_t and not increments (X_(t+1) - X_t)
         batch_zeros = tf.zeros([num_samples])
         psi_0 = tf.stack(num_samples * [self.psi_0])
-        noise = tf.random_normal([length, num_samples], stddev=self.sigma * tf.sqrt(temp * self.delta_t))
+        noise = tf.random_normal([length, num_samples], stddev=self.sigma * temp * tf.sqrt(self.delta_t))
         psi, samples, _ = tf.scan(self._psi_and_sample_update, noise,
                                initializer=(psi_0, batch_zeros, 0.), name="sample_scan")
         # TODO The use of tf.scan here must have some inefficiency as we keep all the intermediate psi values
@@ -268,7 +268,7 @@ class PsiCMPS(CMPS):
 
         def _OU_increments():
             noise = tf.random_normal([length, num_samples],
-                                     stddev= self.sigma * tf.sqrt(temp) * tf.sqrt(1 - tf.exp(-2 * λ * self.delta_t)))
+                                     stddev= self.sigma * temp * tf.sqrt(1 - tf.exp(-2 * λ * self.delta_t)))
             z_init = tf.random_normal([num_samples], stddev=self.sigma * temp)
             OU = tf.scan(lambda z, q: tf.exp(-λ * self.delta_t) * z + q, elems=noise, initializer=z_init)
             OU_increments = OU[1:]-OU[:-1]
