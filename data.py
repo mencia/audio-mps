@@ -1,5 +1,8 @@
 import tensorflow as tf
 import numpy as np
+from scipy.linalg import block_diag
+import tensorflow_probability as tfp
+tfd = tfp.distributions
 
 FLAGS = tf.flags.FLAGS
 
@@ -64,6 +67,66 @@ def get_audio(datadir, dataset, hps):
 
         data = tf.concat([sine_wave_random_delay_1,sine_wave_random_delay_2],0)
         datalog = f"_freq1{freq1}_freq2{freq2}_dect{decay_time}_delt{delay_time}"
+
+    elif dataset == 'gaussian_process':
+
+        # D=1
+        λ = [800]
+        ω = [4800]
+        σ = [2.]
+        D_mix = len(λ)
+
+        # D=2
+        # λ = [50.*16,50.*16]
+        # ω = [300.*16,500.*16]
+        # σ = [1., 1.]
+        # D_mix = len(λ)
+
+        # D=3
+        # λ = [50. * 16, 50. * 16, 50. * 16]
+        # ω = [300. * 16, 500. * 16, 700. * 16]
+        # σ = [1., 1., 1.]
+        # D_mix = len(λ)
+
+        Δt = hps.delta_t
+
+        A_list = []
+        for i in range(D_mix):
+            A_list.append(np.exp(-λ[i] * Δt) * np.array([[np.cos(ω[i] * Δt), -np.sin(ω[i] * Δt)],
+                                                         [np.sin(ω[i] * Δt), np.cos(ω[i] * Δt)]]))
+        A_tf = tf.cast(block_diag(*A_list), dtype=tf.float32)
+
+        def spectral_mixture(T, BATCH_SIZE, D_mix):
+            """T: length of the notes
+               BATCH_SIZE: number of notes"""
+            # Concatenate all the q_matrix matrices in the second index, i.e. axis = 1
+
+            α_list = []
+            for i in range(D_mix):
+                α_list.append(
+                    tf.constant(σ[i]) * tf.sqrt(1 - tf.exp(-2 * tf.constant(λ[i] * Δt))))
+
+            q_matrix_list = []
+            for i in range(D_mix):
+                q_matrix_list.append(tfd.Normal(loc=tf.constant(0.), scale=α_list[i]).sample([T, 2, BATCH_SIZE]))
+
+            q_matrix = tf.concat(q_matrix_list, 1)  # axis = 1 concatenates in the second index
+
+            f_initial_list = []
+            for i in range(D_mix):
+                f_initial_list.append(tfd.Normal(loc=tf.constant(0.), scale=σ[i]).sample([2, BATCH_SIZE]))
+
+            f_initial = tf.concat(f_initial_list, 0)  # axis = 0 concatenates in the first index
+
+            # Pick the odd elements of f=(f_1, f_2, ...) and sum (measurement model) them, both in the second index
+            f_1 = tf.reduce_sum(tf.scan(lambda f, q: tf.matmul(A_tf, f) + q, elems=q_matrix,
+                                        initializer=f_initial)[:, ::2], 1)
+
+            return tf.transpose(f_1)
+
+
+        data = spectral_mixture(FLAGS.sample_duration, hps.minibatch_size, D_mix)
+        datalog = f"_Dmix{D_mix}"
 
     else:
 
