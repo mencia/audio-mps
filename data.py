@@ -8,9 +8,13 @@ def get_audio(datadir, dataset, hps):
     if dataset == 'damped_sine':
 
         input_length = FLAGS.sample_duration
+
         freq = 261.6 # Middle C
-        # freq = 400.  # Middle C
         decay_time = 0.1
+
+        # freq = 600.
+        # decay_time = 0.003
+
         delay_time = input_length / 100
 
         delays = tf.stack(input_length * [tf.random_gamma([hps.minibatch_size], alpha=2, beta=2/delay_time)], axis=-1)
@@ -23,7 +27,7 @@ def get_audio(datadir, dataset, hps):
         data = sine_wave_random_delay
         datalog = f"_freq{freq}_dect{decay_time}_delt{delay_time}"
 
-    elif dataset == 'fixed_damped sine':
+    elif dataset == 'fixed_damped_sine':
 
         input_length = FLAGS.sample_duration
         freq = 600.
@@ -34,7 +38,7 @@ def get_audio(datadir, dataset, hps):
         sine_wave_fixed = tf.sin(2 * np.pi * freq * times) * tf.exp(- times / decay_time)
 
         data = sine_wave_fixed
-        datalog = f"_freq{freq}_dect{decay_time}_delt{delay_time}"
+        datalog = f"_freq{freq}_dect{decay_time}"
 
     else:
 
