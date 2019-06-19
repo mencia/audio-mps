@@ -51,12 +51,12 @@ def get_audio(datadir, dataset, hps):
         decay_time = 0.003
 
         input_range = tf.expand_dims(tf.range(input_length, dtype=np.float32), axis=0)
-        times = input_range * delta_t
+        times = input_range * hps.delta_t
         sine_wave_fixed_a = tf.sin(2 * np.pi * freqa * times) * tf.exp(- times / decay_time)
         sine_wave_fixed_b = tf.sin(2 * np.pi * freqb * times) * tf.exp(- times / decay_time)
 
         data = tf.concat([sine_wave_fixed_a, sine_wave_fixed_b], 0)
-        datalog = f"_freqa{freq1}_freqb{freq2}_dect{decay_time}_delt{delay_time}_fix"
+        datalog = f"_freqa{freqa}_freqb{freqb}_dect{decay_time}_fix"
 
     elif dataset == 'damped_sine_2_freq':
 
