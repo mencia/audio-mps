@@ -33,7 +33,7 @@ def get_audio(datadir, dataset, hps):
     elif dataset == 'fixed_damped_sine':
 
         input_length = FLAGS.sample_duration
-        freq = 600.
+        freq = 800.
         decay_time = 0.003
 
         input_range = tf.expand_dims(tf.range(input_length, dtype=np.float32), axis=0)
@@ -41,7 +41,7 @@ def get_audio(datadir, dataset, hps):
         sine_wave_fixed = tf.sin(2 * np.pi * freq * times) * tf.exp(- times / decay_time)
 
         data = sine_wave_fixed
-        datalog = f"_freq{freq}_dect{decay_time}"
+        datalog = f"_freq{freq}_dect{decay_time}_fix"
 
     elif dataset == 'fixed_damped_sine_2_freq':
 
@@ -62,23 +62,37 @@ def get_audio(datadir, dataset, hps):
 
         input_length = FLAGS.sample_duration
 
-        freq1 = 261.6 # Middle C
-        freq2 = 0.5 * freq1
-        decay_time = 0.1
+        # freq1 = 261.6 # Middle C
+        # freq2 = 0.5 * freq1
+        # decay_time = 0.1
 
-        # freq = 600.
-        # decay_time = 0.003
+        freq1 = 600.
+        freq2 = 800.
+        decay_time = 0.003
+
+
+        # delay_time = input_length / 100
+        # # TODO probably a better idea to have all delays random (note hps.minibatch_size/2 below)
+        # delays = tf.stack(input_length * [tf.random_gamma([np.int(hps.minibatch_size/2)], alpha=2, beta=2/delay_time)], axis=-1)
+        #
+        # input_range = tf.expand_dims(tf.range(input_length, dtype=np.float32), axis=0)
+        # times = (input_range - delays) * hps.delta_t
+        # sine_wave_random_delay_1 = 0.5 * (tf.sign(times) + 1) \
+        #                          * tf.sin(2 * np.pi * freq1 * times) * tf.exp(- times / decay_time)
+        # sine_wave_random_delay_2 = 0.5 * (tf.sign(times) + 1) \
+        #                          * tf.sin(2 * np.pi * freq2 * times) * tf.exp(- times / decay_time)
 
         delay_time = input_length / 100
-        # TODO probably a better idea to have all delays random (note hps.minibatch_size/2 below)
-        delays = tf.stack(input_length * [tf.random_gamma([np.int(hps.minibatch_size/2)], alpha=2, beta=2/delay_time)], axis=-1)
+        delays = tf.stack(input_length * [tf.random_gamma([np.int(hps.minibatch_size)], alpha=2, beta=2 / delay_time)], axis=-1)
 
         input_range = tf.expand_dims(tf.range(input_length, dtype=np.float32), axis=0)
-        times = (input_range - delays) * hps.delta_t
-        sine_wave_random_delay_1 = 0.5 * (tf.sign(times) + 1) \
-                                 * tf.sin(2 * np.pi * freq1 * times) * tf.exp(- times / decay_time)
-        sine_wave_random_delay_2 = 0.5 * (tf.sign(times) + 1) \
-                                 * tf.sin(2 * np.pi * freq2 * times) * tf.exp(- times / decay_time)
+        times_a = (input_range - delays[:np.int(hps.minibatch_size / 2)]) * hps.delta_t
+        times_b = (input_range - delays[-np.int(hps.minibatch_size / 2):]) * hps.delta_t
+
+        sine_wave_random_delay_1 = 0.5 * (tf.sign(times_a) + 1) \
+                                   * tf.sin(2 * np.pi * freq1 * times_a) * tf.exp(- times_a / decay_time)
+        sine_wave_random_delay_2 = 0.5 * (tf.sign(times_b) + 1) \
+                                   * tf.sin(2 * np.pi * freq2 * times_b) * tf.exp(- times_b / decay_time)
 
         data = tf.concat([sine_wave_random_delay_1,sine_wave_random_delay_2],0)
         datalog = f"_freqa{freq1}_freqb{freq2}_dect{decay_time}_delt{delay_time}"
