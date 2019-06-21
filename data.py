@@ -70,18 +70,6 @@ def get_audio(datadir, dataset, hps):
         freq2 = 800.
         decay_time = 0.003
 
-
-        # delay_time = input_length / 100
-        # # TODO probably a better idea to have all delays random (note hps.minibatch_size/2 below)
-        # delays = tf.stack(input_length * [tf.random_gamma([np.int(hps.minibatch_size/2)], alpha=2, beta=2/delay_time)], axis=-1)
-        #
-        # input_range = tf.expand_dims(tf.range(input_length, dtype=np.float32), axis=0)
-        # times = (input_range - delays) * hps.delta_t
-        # sine_wave_random_delay_1 = 0.5 * (tf.sign(times) + 1) \
-        #                          * tf.sin(2 * np.pi * freq1 * times) * tf.exp(- times / decay_time)
-        # sine_wave_random_delay_2 = 0.5 * (tf.sign(times) + 1) \
-        #                          * tf.sin(2 * np.pi * freq2 * times) * tf.exp(- times / decay_time)
-
         delay_time = input_length / 100
         delays = tf.stack(input_length * [tf.random_gamma([np.int(hps.minibatch_size)], alpha=2, beta=2 / delay_time)], axis=-1)
 
