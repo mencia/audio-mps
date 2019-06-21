@@ -172,6 +172,47 @@ def get_audio(datadir, dataset, hps):
         data = tf.constant(daton, dtype=tf.float32)
         datalog = 'fixed_gaussian'
 
+    elif dataset == 'poisson_process':
+
+        Δt = hps.delta_t
+        λ = 6400
+        τ = 0.000125
+        ω = 32000
+        N_st = np.int(5 * τ / Δt)  # STEADY-STATE
+        N = N_st + FLAGS.sample_duration # INPUT_LENGTH = N
+        T = N * Δt
+        time_grid = np.arange(0, T, Δt) + Δt
+        seed = None
+
+        def Poisson_process(num_samples):
+
+            tf.random.set_random_seed(seed)
+            Nt_list = tf.random.poisson(λ * T, [num_samples], dtype=tf.int32, seed=seed)
+            times_raw = tf.random.uniform(
+                shape=[tf.reduce_sum(Nt_list)],
+                minval=0,
+                maxval=T,
+                dtype=tf.float32,
+                seed=seed,
+                name=None)
+            times_unsorted = tf.split(times_raw, Nt_list)
+            jump_times = [tf.contrib.framework.sort(times_unsorted[i], direction='ASCENDING') for i in range(num_samples)]
+            amplitudes_raw = 2 * tfd.Bernoulli(probs=0.5).sample(tf.reduce_sum(Nt_list), seed=seed) - 1
+            amplitudes_raw = tf.cast(amplitudes_raw, tf.float32)
+            amplitudes = tf.split(amplitudes_raw, Nt_list)
+
+            process_list = []
+            for k in range(num_samples):
+                process_list.append(tf.reduce_sum(tf.multiply(amplitudes[k],
+                            tf.transpose(tf.map_fn(lambda tk: 0.5 * (tf.sign(time_grid - (tk * tf.ones(N))) + 1.)
+                                                              * tf.exp(-(time_grid - (tk * tf.ones(N))) / τ) *
+                            tf.sin((time_grid - (tk * tf.ones(N))) * ω),jump_times[k]))), axis=1))
+            return tf.stack(process_list)
+
+        data = Poisson_process(hps.minibatch_size)[:, N_st:]
+        datalog = '_lm'+str(λ)+'_tau'+str(τ)+'_w'+str(ω)+'_notelength'+str(N)+'_delta_t'+str(Δt)+\
+                           '_Nst'+str(N_st)+'_seed'+str(seed)+"_smooth_Poisson"
+
     else:
 
         # LOAD DATA
