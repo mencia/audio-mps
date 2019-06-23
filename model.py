@@ -186,9 +186,13 @@ class RhoCMPS(CMPS):
         t += self.dt
         return rho, sample, t
 
+    # def _inc_loss_rho(self, rho, signal, t):
+    #     inc_loss = - self.A * self._expectation(rho, t) * signal +\
+    #            0.5 * (self.A**2) * (self._expectation(rho, t)**2) * self.dt
+    #     return inc_loss
+
     def _inc_loss_rho(self, rho, signal, t):
-        inc_loss = - self.A * self._expectation(rho, t) * signal +\
-               0.5 * (self.A**2) * (self._expectation(rho, t)**2) * self.dt
+        inc_loss = (signal - self.A * self._expectation(rho, t) * self.dt) ** 2
         return inc_loss
 
     def _update_ancilla_rho(self, rho, signal, t):
@@ -336,9 +340,13 @@ class PsiCMPS(CMPS):
         t += self.dt
         return psi, sample, t
 
+    # def _inc_loss_psi(self, psi, signal, t):
+    #     inc_loss = - self.A * self._expectation(psi, t) * signal +\
+    #            0.5 * (self.A**2) * (self._expectation(psi, t)**2) * self.dt
+    #     return inc_loss
+
     def _inc_loss_psi(self, psi, signal, t):
-        inc_loss = - self.A * self._expectation(psi, t) * signal +\
-               0.5 * (self.A**2) * (self._expectation(psi, t)**2) * self.dt
+        inc_loss = (signal - self.A * self._expectation(psi, t) * self.dt)**2
         return inc_loss
 
     def _norm_square_psi(self, psi):
