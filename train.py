@@ -40,7 +40,7 @@ def main(argv):
     #                   initial_rank=None, A=100., learning_rate=0.001)
 
 
-    hparams = HParams(minibatch_size=8, bond_dim=50, delta_t=1/FLAGS.sample_rate, sigma=1.,
+    hparams = HParams(minibatch_size=8, bond_dim=100, delta_t=1/FLAGS.sample_rate, sigma=0.0001,
                       h_reg=200/(np.pi * FLAGS.sample_rate)**2, r_reg=0.1,
                       initial_rank=None, A=600., learning_rate=0.001)
     hparams.parse(FLAGS.hparams)
@@ -67,14 +67,14 @@ def main(argv):
         tf.summary.scalar("h_l2norm", tf.sqrt(h_l2sqnorm))
         tf.summary.scalar("r_l2norm", tf.sqrt(r_l2sqnorm))
 
-        gr_rate = 2 * np.pi * hparams.sigma**2 * r_l2sqnorm / hparams.bond_dim
-        tf.summary.scalar("gr_decay_time", 1 / gr_rate)
+        # gr_rate = 2 * np.pi * hparams.sigma**2 * r_l2sqnorm / hparams.bond_dim
+        # tf.summary.scalar("gr_decay_time", 1 / gr_rate)
 
         tf.summary.scalar("model_loss", tf.reshape(model.loss, []))
         tf.summary.scalar("total_loss", tf.reshape(total_loss, []))
 
-        tf.summary.audio("data", data, sample_rate=FLAGS.sample_rate, max_outputs=5)
-        tf.summary.histogram("frequencies", model.freqs / (2 * np.pi))
+        # tf.summary.audio("data", data, sample_rate=FLAGS.sample_rate, max_outputs=5)
+        # tf.summary.histogram("frequencies", model.freqs / (2 * np.pi))
 
         #rms(R+Rdag) summary
         rms_R_plus_Rdag = model.rms_R_plus_Rdag
