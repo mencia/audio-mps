@@ -110,7 +110,7 @@ class RhoCMPS(CMPS):
         rho, samples, _ = tf.scan(self._rho_and_sample_update, noise,
                                initializer=(rho_0, batch_zeros, 0.), name="sample_scan")
         # TODO The use of tf.scan here must have some inefficiency as we keep all the intermediate psi values
-        return self.A * tf.transpose(samples, [1, 0])
+        return tf.transpose(samples, [1, 0])
 
     def sample_filtered(self, num_samples, length, temp=1, λ=1):
 
