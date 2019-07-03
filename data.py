@@ -175,9 +175,9 @@ def get_audio(datadir, dataset, hps):
     elif dataset == 'poisson_process':
 
         Δt = hps.delta_t
-        λ = 6400
-        τ = 0.000125
-        ω = 32000
+        λ = 640
+        τ = 0.00125
+        ω = 3200
         N_st = np.int(5 * τ / Δt)  # STEADY-STATE
         N = N_st + FLAGS.sample_duration # INPUT_LENGTH = N
         T = N * Δt
