@@ -211,7 +211,7 @@ def get_audio(datadir, dataset, hps):
 
         data = Poisson_process(hps.minibatch_size)[:, N_st:]
         datalog = '_lm'+str(λ)+'_tau'+str(τ)+'_w'+str(ω)+'_notelength'+str(N)+'_delta_t'+str(Δt)+\
-                           '_Nst'+str(N_st)+'_seed'+str(seed)+"_smooth_Poisson"
+                           '_Nst'+str(N_st)+'_seed'+str(seed)+"_smooth_Poisson_increments"
 
     else:
 
