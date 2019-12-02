@@ -1,5 +1,5 @@
 # audio-mps
-Audio Synthesis with Matrix Product States
+Audio Synthesis with continuous Matrix Product States https://arxiv.org/abs/1911.11879
 
 ## Software
 
@@ -12,21 +12,18 @@ Audio Synthesis with Matrix Product States
 
 It defines our RNN model and contains other methods, to sample from the trained model for example.
 
-* training_estimators.py
+* train.py
 
-It loads the training data, and runs the training. A custom estimator is used.
+It performs the training.
+
+* data.py
+
+It creates a synthetic dataset or reads in real data.
 
 * reader.py
 
-It picks out a subset of the data, that contains a desired feature: pitch, instrument ...
+When using real data (like Nsynth), it picks out a subset of the data, that contains a desired feature: pitch, instrument ...
 
 * make-small-dataset.py
 
-It imports reader.py to make the dataset.
-
-## Todo
-
-1. Sampling
-1. What about initialization? Glorot variance depends on size.
-1. Monitor change of state to see if it is small
-1. Exploring latent space
+When using real data (like Nsynth), it imports reader.py to make the dataset.
