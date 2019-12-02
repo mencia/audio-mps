@@ -14,15 +14,9 @@ class CMPS:
         self.r_reg = hparams.r_reg
         self.delta_t = hparams.delta_t
         self.dt = tf.constant(hparams.delta_t, tf.float32) # Needed for increments
-
         self.A = hparams.A
         self.A = tf.get_variable("A", dtype=tf.float32, initializer=hparams.A)
-
-        # TODO leave a warning message to include sigma in the loss, if we learn it. What is the usual way?
         self.sigma = hparams.sigma
-        # self.sigma = tf.get_variable("sigma", dtype=tf.float32, initializer=hparams.sigma)
-        # self.sigma = tf.cast(self.sigma, dtype=tf.complex64)
-
         self.data_iterator = data_iterator
 
         #======================================================
@@ -186,11 +180,6 @@ class RhoCMPS(CMPS):
         t += self.dt
         return rho, sample, t
 
-    # def _inc_loss_rho(self, rho, signal, t):
-    #     inc_loss = - self.A * self._expectation(rho, t) * signal +\
-    #            0.5 * (self.A**2) * (self._expectation(rho, t)**2) * self.dt
-    #     return inc_loss
-
     def _inc_loss_rho(self, rho, signal, t):
         inc_loss = (1/(2.*self.dt)) * (signal - self.A * self._expectation(rho, t) * self.dt) ** 2
         return inc_loss
@@ -340,11 +329,6 @@ class PsiCMPS(CMPS):
         t += self.dt
         return psi, sample, t
 
-    # def _inc_loss_psi(self, psi, signal, t):
-    #     inc_loss = - self.A * self._expectation(psi, t) * signal +\
-    #            0.5 * (self.A**2) * (self._expectation(psi, t)**2) * self.dt
-    #     return inc_loss
-
     def _inc_loss_psi(self, psi, signal, t):
         inc_loss = (1/(2.*self.dt)) * (signal - self.A * self._expectation(psi, t) * self.dt)**2
         return inc_loss
@@ -381,7 +365,7 @@ class PsiCMPS(CMPS):
             return 2 * tf.real(exp)  # Conveniently returns a float
 
     def _normalize_psi(self, x, axis=None, epsilon=1e-12):
-        #TODO change the method so that it ise clear that the argument axis changes whether we normalize a single psi
+        #TODO change the method so that it is clear that the argument axis changes whether we normalize a single psi
         #TODO or a batch of psis
         with tf.variable_scope("normalize"):
             square_sum = tf.reduce_sum(tf.square(tf.abs(x)), axis, keepdims=True)
